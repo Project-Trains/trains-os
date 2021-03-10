@@ -5,6 +5,9 @@
 
 EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable)
 {
+    InitializeLib(ImageHandle, SystemTable);
+    Print(L"Loading kernel \n\r");
+
     EFI_FILE *Kernel = LoadFile(NULL, L"kernel.elf", ImageHandle, SystemTable);
 
     if (Kernel == NULL)
