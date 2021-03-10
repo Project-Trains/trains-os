@@ -2,7 +2,7 @@
 
 ![GitHub repo size](https://img.shields.io/github/repo-size/Project-Trains/trains-os)
 ![GitHub issues](https://img.shields.io/github/issues/Project-Trains/trains-os)
-[![Readme Polski](https://img.shields.io/badge/README-Polski-blue)](https://github.com/Project-Trains/blob/master/README.pl.md)
+[![Readme Polski](https://img.shields.io/badge/README-Polski-blue)](https://github.com/Project-Trains/trains-os/blob/master/README.pl.md)
 
 ## Environment setup
 
