@@ -58,7 +58,15 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable)
 
     int (*KernelStart)() = ((__attribute__((sysv_abi)) int (*)())header.e_entry);
 
-    Print(L"%d\r\n", KernelStart());
+    Framebuffer* buffer = InitGOP();
+    Print(L"Base: 0x%x\n\rSize: 0x%x\n\rWidth: %d\n\rHeight: %d\n\rPixelsPerScanline: %d\n\r", 
+	buffer->BaseAddress, 
+	buffer->BufferSize, 
+	buffer->Width, 
+	buffer->Height, 
+	buffer->PixelsPerScanLine);
+
+    // Print(L"%d\r\n", KernelStart());
 
     return EFI_SUCCESS;
 }
@@ -105,4 +113,32 @@ int memcmp(const void *aptr, const void *bptr, size_t n)
             return 1;
     }
     return 0;
+}
+
+Framebuffer framebuffer;
+
+Framebuffer *InitGOP()
+{
+    EFI_GUID gopGuid = EFI_GRAPHICS_OUTPUT_PROTOCOL_GUID;
+    EFI_GRAPHICS_OUTPUT_PROTOCOL *gop;
+    EFI_STATUS status;
+
+    status = uefi_call_wrapper(BS->LocateProtocol, 3, &gopGuid, NULL, (void **)&gop);
+    if (EFI_ERROR(status))
+    {
+        Print(L"Could not locate GOP\n\r");
+        return NULL;
+    }
+    else
+    {
+        Print(L"Located GOP\n\r");
+    }
+
+    framebuffer.BaseAddress = (void *)gop->Mode->FrameBufferBase;
+    framebuffer.BufferSize = gop->Mode->FrameBufferSize;
+    framebuffer.Width = gop->Mode->Info->HorizontalResolution;
+    framebuffer.Height = gop->Mode->Info->VerticalResolution;
+    framebuffer.PixelsPerScanLine = gop->Mode->Info->PixelsPerScanLine;
+
+    return &framebuffer;
 }
