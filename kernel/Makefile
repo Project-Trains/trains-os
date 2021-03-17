@@ -1,17 +1,19 @@
+
 OS_NAME = TrainsOS
 
-CC = x86_64-w64-mingw32-gcc
-OVMF_DIR = ../ovmf-x64
-GNU_EFI = ../gnu-efi
+GNUEFI = ../gnu-efi
+OVMF_DIR = ../ovmf
 LDS = kernel.ld
+CC = gcc
+LD = ld
 
-LDFLAGS = -T $(LDS) -shared -Bsymbolic -nostdlib
 CFLAGS = -ffreestanding -fshort-wchar
+LDFLAGS = -T $(LDS) -static -Bsymbolic -nostdlib
 
 SRC_DIR := src
 OBJ_DIR := lib
 BUILD_DIR = bin
-BOOT_EFI := $(GNU_EFI)/x86_64/bootloader/main.efi
+BOOT_EFI := $(GNUEFI)/x86_64/bootloader/main.efi
 
 rwildcard=$(foreach d,$(wildcard $(1:=/*)),$(call rwildcard,$d,$2) $(filter $(subst *,%,$2),$d))
 
@@ -22,12 +24,12 @@ DIRS = $(wildcard $(SRC_DIR)/*)
 kernel: $(OBJS) link
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
-	@echo COMPILING $^
-	@mkdir -p $(@D)
+	@ echo COMPILING $^
+	@ mkdir -p $(@D)
 	$(CC) $(CFLAGS) -c $^ -o $@
-
+	
 link:
-	@echo LINKING
+	@ echo LINKING
 	$(LD) $(LDFLAGS) -o $(BUILD_DIR)/kernel.elf $(OBJS)
 
 setup:
@@ -43,6 +45,7 @@ buildimg:
 	mcopy -i $(BUILD_DIR)/$(OS_NAME).img $(BOOT_EFI) ::/EFI/BOOT
 	mcopy -i $(BUILD_DIR)/$(OS_NAME).img startup.nsh ::
 	mcopy -i $(BUILD_DIR)/$(OS_NAME).img $(BUILD_DIR)/kernel.elf ::
+	mcopy -i $(BUILD_DIR)/$(OS_NAME).img $(BUILD_DIR)/zap-light16.psf ::
 
 run:
 	qemu-system-x86_64 -drive file=$(BUILD_DIR)/$(OS_NAME).img -m 256M -cpu qemu64 -drive if=pflash,format=raw,unit=0,file="$(OVMF_DIR)/OVMF_CODE-pure-efi.fd",readonly=on -drive if=pflash,format=raw,unit=1,file="$(OVMF_DIR)/OVMF_VARS-pure-efi.fd" -net none
