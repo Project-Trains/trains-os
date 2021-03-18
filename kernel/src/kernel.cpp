@@ -3,7 +3,7 @@
 void putChar(Framebuffer *framebuffer, PSF1_FONT *psf1_font, unsigned int colour, char chr, unsigned int xOff, unsigned int yOff)
 {
     unsigned int *pixPtr = (unsigned int *)framebuffer->BaseAddress;
-    char *fontPtr = psf1_font->glyphBuffer + (chr * psf1_font->psf1_Header->charsize);
+    char *fontPtr = (char *)psf1_font->glyphBuffer + (chr * psf1_font->psf1_Header->charsize);
     for (unsigned long y = yOff; y < yOff + 16; y++)
     {
         for (unsigned long x = xOff; x < xOff + 8; x++)
@@ -18,10 +18,10 @@ void putChar(Framebuffer *framebuffer, PSF1_FONT *psf1_font, unsigned int colour
 }
 
 Point CursorPosition;
-void Print(Framebuffer *framebuffer, PSF1_FONT *psf1_font, unsigned int colour, char *str)
+void Print(Framebuffer *framebuffer, PSF1_FONT *psf1_font, unsigned int colour, const char *str)
 {
 
-    char *chr = str;
+    char *chr = (char *)str;
     while (*chr != 0)
     {
         putChar(framebuffer, psf1_font, colour, *chr, CursorPosition.X, CursorPosition.Y);
@@ -39,10 +39,6 @@ void _start(Framebuffer *framebuffer, PSF1_FONT *psf1_font)
 {
     CursorPosition.X = 50;
     CursorPosition.Y = 120;
-    for (int t = 0; t < 50; t += 1)
-    {
-
-        Print(framebuffer, psf1_font, 0xffffffff, "Hello There");
-    }
+    Print(framebuffer, psf1_font, 0xffffffff, "Hello there!");
     return;
 }

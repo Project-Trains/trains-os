@@ -188,7 +188,7 @@ PSF1_FONT *LoadPSF1Font(EFI_FILE *Directory, CHAR16 *Path, EFI_HANDLE ImageHandl
 
     UINTN glyphBufferSize = fontHeader->charsize * 256;
     if (fontHeader->mode == 1)
-    { //512 glyph mode
+    {
         glyphBufferSize = fontHeader->charsize * 512;
     }
 

@@ -30,5 +30,5 @@ typedef struct
 } Point;
 
 void putChar(Framebuffer *framebuffer, PSF1_FONT *psf1_font, unsigned int colour, char chr, unsigned int xOff, unsigned int yOff);
-void Print(Framebuffer *framebuffer, PSF1_FONT *psf1_font, unsigned int colour, char *str);
-void _start(Framebuffer *framebuffer, PSF1_FONT *psf1_font);
+void Print(Framebuffer *framebuffer, PSF1_FONT *psf1_font, unsigned int colour, const char *str);
+extern "C" void _start(Framebuffer *framebuffer, PSF1_FONT *psf1_font);
