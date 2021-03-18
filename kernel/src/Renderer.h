@@ -1,12 +1,7 @@
 #pragma once
+#include "math.h"
 #include "Framebuffer.h"
 #include "fonts.h"
-
-struct Point
-{
-    unsigned int X;
-    unsigned int Y;
-};
 
 class Renderer
 {
