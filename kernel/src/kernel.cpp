@@ -3,9 +3,9 @@
 #include "cstr.h"
 #include "kernel.h"
 
-void _start(Framebuffer *framebuffer, PSF1_FONT *psf1_font)
+void _start(BootInfo *bootInfo)
 {
-    Renderer renderer = Renderer(framebuffer, psf1_font);
-    renderer.Print(to_string((uint64_t)1234976));    
+    Renderer renderer = Renderer(bootInfo->framebuffer, bootInfo->psf1_Font);
+    renderer.Print(to_string((uint64_t)1234976));
     return;
 }

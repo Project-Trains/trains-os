@@ -28,6 +28,15 @@ typedef struct
     void *glyphBuffer;
 } PSF1_FONT;
 
+typedef struct
+{
+    Framebuffer *framebuffer;
+    PSF1_FONT *psf1_Font;
+    EFI_MEMORY_DESCRIPTOR *mMap;
+    UINTN mMapSize;
+    UINTN mMapDescSize;
+} BootInfo;
+
 Framebuffer *InitGOP();
 EFI_FILE *LoadFile(EFI_FILE *Directory, CHAR16 *Path, EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable);
 PSF1_FONT *LoadPSF1Font(EFI_FILE *Directory, CHAR16 *Path, EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable);

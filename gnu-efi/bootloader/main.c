@@ -70,8 +70,6 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable)
 
     Print(L"Kernel loaded\n\r");
 
-    void (*KernelStart)(Framebuffer *, PSF1_FONT *) = ((__attribute__((sysv_abi)) void (*)(Framebuffer *, PSF1_FONT *))header.e_entry);
-
     PSF1_FONT *font = LoadPSF1Font(NULL, L"zap-light16.psf", ImageHandle, SystemTable);
     if (font == NULL)
     {
@@ -91,9 +89,30 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable)
           buffer->Height,
           buffer->PixelsPerScanLine);
 
-    KernelStart(buffer, font);
+    EFI_MEMORY_DESCRIPTOR *Map = NULL;
+    UINTN MapSize, MapKey;
+    UINTN DescriptorSize;
+    UINT32 DescriptorVersion;
+    {
+        SystemTable->BootServices->GetMemoryMap(&MapSize, Map, &MapKey, &DescriptorSize, &DescriptorVersion);
+        SystemTable->BootServices->AllocatePool(EfiLoaderData, MapSize, (void **)&Map);
+        SystemTable->BootServices->GetMemoryMap(&MapSize, Map, &MapKey, &DescriptorSize, &DescriptorVersion);
+    }
 
-    return EFI_SUCCESS; // Exit the UEFI application
+    void (*KernelStart)(BootInfo *) = ((__attribute__((sysv_abi)) void (*)(BootInfo *))header.e_entry);
+
+    BootInfo bootInfo;
+    bootInfo.framebuffer = newBuffer;
+    bootInfo.psf1_Font = newFont;
+    bootInfo.mMap = Map;
+    bootInfo.mMapSize = MapSize;
+    bootInfo.mMapDescSize = DescriptorSize;
+
+    SystemTable->BootServices->ExitBootServices(ImageHandle, MapKey);
+
+    KernelStart(&bootInfo);
+
+    return EFI_SUCCESS;
 }
 
 BOOLEAN KernelFormatCheck(Elf64_Ehdr header)
@@ -115,7 +134,8 @@ EFI_FILE *LoadFile(EFI_FILE *Directory, CHAR16 *Path, EFI_HANDLE ImageHandle, EF
     SystemTable->BootServices->HandleProtocol(ImageHandle, &gEfiLoadedImageProtocolGuid, (void **)&LoadedImage);
 
     EFI_SIMPLE_FILE_SYSTEM_PROTOCOL *FileSystem;
-    SystemTable->BootServices->HandleProtocol(LoadedImage->DeviceHandle, &gEfiSimpleFileSystemProtocolGuid, (void **)&FileSystem);
+    SystemTable->BootServices->HandleProtocol(LoadedImage->DeviceHandle, &gEfiSimpleFileSystemProtocolGuid,
+                                              (void **)&FileSystem);
 
     if (Directory == NULL)
     {
@@ -144,6 +164,7 @@ int memcmp(const void *aptr, const void *bptr, size_t n)
 }
 
 Framebuffer framebuffer;
+
 Framebuffer *InitGOP()
 {
     EFI_GUID gopGuid = EFI_GRAPHICS_OUTPUT_PROTOCOL_GUID;
