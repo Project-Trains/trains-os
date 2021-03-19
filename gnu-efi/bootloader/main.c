@@ -102,8 +102,8 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable)
     void (*KernelStart)(BootInfo *) = ((__attribute__((sysv_abi)) void (*)(BootInfo *))header.e_entry);
 
     BootInfo bootInfo;
-    bootInfo.framebuffer = newBuffer;
-    bootInfo.psf1_Font = newFont;
+    bootInfo.framebuffer = buffer;
+    bootInfo.psf1_Font = font;
     bootInfo.mMap = Map;
     bootInfo.mMapSize = MapSize;
     bootInfo.mMapDescSize = DescriptorSize;
