@@ -3,13 +3,17 @@
 #include "cstr.h"
 #include "kernel.h"
 #include "efiMemory.h"
+#include "memory.h"
 
 void _start(BootInfo *bootInfo)
 {
     Renderer renderer = Renderer(bootInfo->framebuffer, bootInfo->psf1_Font);
     uint64_t mMapEntries = bootInfo->mMapSize / bootInfo->mMapDescSize;
 
-    for (int i = 0; i < mMapEntries; i++)
+    renderer.Print(to_string(GetMemorySize(bootInfo->framebuffer, bootInfo->psf1_Font) / 1024));
+    renderer.Print(" KB");
+
+    /*for (int i = 0; i < mMapEntries; i++)
     {
         EFI_MEMORY_DESCRIPTOR *desc = (EFI_MEMORY_DESCRIPTOR *)((uint64_t)bootInfo->mMap + (i * bootInfo->mMapDescSize));
         renderer.CursorPosition = {0, renderer.CursorPosition.Y + 16};
@@ -19,6 +23,6 @@ void _start(BootInfo *bootInfo)
         renderer.Print(to_string(desc->numPages * 4096 / 1024));
         renderer.Print(" KB");
         renderer.Color = 0xffffffff;
-    }
+    }*/
     return;
 }
