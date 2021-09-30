@@ -14,6 +14,8 @@ void _start(BootInfo *bootInfo)
 
     allocator.LockPages(&_KernelStart, kernelPages);
 
+    renderer.ClearScreen(0xff1a1a1a);
+
     renderer.CursorPosition = {0, renderer.CursorPosition.Y + 16};
     renderer.Print("Free RAM: ");
     renderer.Print(to_string(allocator.GetFreeRAM() / 1024));

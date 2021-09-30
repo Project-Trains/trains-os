@@ -10,7 +10,6 @@ Renderer::Renderer(Framebuffer *targetFramebuffer, PSF1_FONT *psf1_Font)
 
 void Renderer::Print(const char *str)
 {
-
     char *chr = (char *) str;
     while (*chr != 0) {
         PutChar(*chr, CursorPosition.X, CursorPosition.Y);
@@ -35,4 +34,12 @@ void Renderer::PutChar(char chr, unsigned int xOff, unsigned int yOff)
         }
         fontPtr++;
     }
+}
+
+void Renderer::ClearScreen(unsigned int color)
+{
+    unsigned int *pixPtr = (unsigned int *) TargetFramebuffer->BaseAddress;
+    for (unsigned long y = 1; y < TargetFramebuffer->Height; y++)
+        for (unsigned long x = 1; x < TargetFramebuffer->Width; x++)
+            *(unsigned int *) (pixPtr + x + (y * TargetFramebuffer->PixelsPerScanLine)) = color;
 }

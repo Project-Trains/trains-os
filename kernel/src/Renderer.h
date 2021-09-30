@@ -14,4 +14,5 @@ public:
     unsigned int Color;
     void Print(const char *str);
     void PutChar(char chr, unsigned int xOff, unsigned int yOff);
+    void ClearScreen(unsigned int color);
 };
