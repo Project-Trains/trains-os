@@ -1,4 +1,5 @@
 #pragma once
+
 #include <stdint.h>
 #include "Renderer.h"
 #include "cstr.h"
@@ -14,7 +15,6 @@ struct BootInfo
     uint64_t mMapSize;
     uint64_t mMapDescSize;
 };
-
 extern uint64_t _KernelStart;
 extern uint64_t _KernelEnd;
 

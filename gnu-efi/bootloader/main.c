@@ -9,12 +9,9 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable)
     Print(L"Loading kernel \n\r");
 
     EFI_FILE *Kernel = LoadFile(NULL, L"kernel.elf", ImageHandle, SystemTable);
-    if (Kernel == NULL)
-    {
+    if (Kernel == NULL) {
         Print(L"Could not load kernel \n\r");
-    }
-    else
-    {
+    } else {
         Print(L"Kernel loaded successfully \n\r");
     }
 
@@ -23,19 +20,16 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable)
         UINTN FileInfoSize;
         EFI_FILE_INFO *FileInfo;
         Kernel->GetInfo(Kernel, &gEfiFileInfoGuid, &FileInfoSize, NULL);
-        SystemTable->BootServices->AllocatePool(EfiLoaderData, FileInfoSize, (void **)&FileInfo);
-        Kernel->GetInfo(Kernel, &gEfiFileInfoGuid, &FileInfoSize, (void **)&FileInfo);
+        SystemTable->BootServices->AllocatePool(EfiLoaderData, FileInfoSize, (void **) &FileInfo);
+        Kernel->GetInfo(Kernel, &gEfiFileInfoGuid, &FileInfoSize, (void **) &FileInfo);
 
         UINTN size = sizeof(header);
         Kernel->Read(Kernel, &size, &header);
     }
 
-    if (KernelFormatCheck(header))
-    {
+    if (KernelFormatCheck(header)) {
         Print(L"Kernel format is bad\n\r");
-    }
-    else
-    {
+    } else {
         Print(L"Kernel header successfully verified\n\r");
     }
 
@@ -43,40 +37,34 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable)
     {
         Kernel->SetPosition(Kernel, header.e_phoff);
         UINTN size = header.e_phnum * header.e_phentsize;
-        SystemTable->BootServices->AllocatePool(EfiLoaderData, size, (void **)&phdrs);
+        SystemTable->BootServices->AllocatePool(EfiLoaderData, size, (void **) &phdrs);
         Kernel->Read(Kernel, &size, phdrs);
     }
 
     for (
-        Elf64_Phdr *phdr = phdrs;
-        (char *)phdr < (char *)phdrs + header.e_phnum * header.e_phentsize;
-        phdr = (Elf64_Phdr *)((char *)phdr + header.e_phentsize))
-    {
-        switch (phdr->p_type)
-        {
-        case PT_LOAD:
-        {
-            int pages = (phdr->p_memsz + 0x1000 - 1) / 0x1000;
-            Elf64_Addr segment = phdr->p_paddr;
-            SystemTable->BootServices->AllocatePages(AllocateAddress, EfiLoaderData, pages, &segment);
+            Elf64_Phdr *phdr = phdrs;
+            (char *) phdr < (char *) phdrs + header.e_phnum * header.e_phentsize;
+            phdr = (Elf64_Phdr * )((char *) phdr + header.e_phentsize)) {
+        switch (phdr->p_type) {
+            case PT_LOAD: {
+                int pages = (phdr->p_memsz + 0x1000 - 1) / 0x1000;
+                Elf64_Addr segment = phdr->p_paddr;
+                SystemTable->BootServices->AllocatePages(AllocateAddress, EfiLoaderData, pages, &segment);
 
-            Kernel->SetPosition(Kernel, phdr->p_offset);
-            UINTN size = phdr->p_filesz;
-            Kernel->Read(Kernel, &size, (void *)segment);
-            break;
-        }
+                Kernel->SetPosition(Kernel, phdr->p_offset);
+                UINTN size = phdr->p_filesz;
+                Kernel->Read(Kernel, &size, (void *) segment);
+                break;
+            }
         }
     }
 
     Print(L"Kernel loaded\n\r");
 
     PSF1_FONT *font = LoadPSF1Font(NULL, L"zap-light16.psf", ImageHandle, SystemTable);
-    if (font == NULL)
-    {
+    if (font == NULL) {
         Print(L"Font is not valid or is not found\n\r");
-    }
-    else
-    {
+    } else {
         Print(L"Font found. char size = %d\n\r", font->psf1_Header->charsize);
     }
 
@@ -95,12 +83,11 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable)
     UINT32 DescriptorVersion;
     {
         SystemTable->BootServices->GetMemoryMap(&MapSize, Map, &MapKey, &DescriptorSize, &DescriptorVersion);
-        SystemTable->BootServices->AllocatePool(EfiLoaderData, MapSize, (void **)&Map);
+        SystemTable->BootServices->AllocatePool(EfiLoaderData, MapSize, (void **) &Map);
         SystemTable->BootServices->GetMemoryMap(&MapSize, Map, &MapKey, &DescriptorSize, &DescriptorVersion);
     }
 
-    void (*KernelStart)(BootInfo *) = ((__attribute__((sysv_abi)) void (*)(BootInfo *))header.e_entry);
-
+    void (*KernelStart)(BootInfo *) = ((__attribute__((sysv_abi)) void (*)(BootInfo *)) header.e_entry);
     BootInfo bootInfo;
     bootInfo.framebuffer = buffer;
     bootInfo.psf1_Font = font;
@@ -118,33 +105,30 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable)
 BOOLEAN KernelFormatCheck(Elf64_Ehdr header)
 {
     return (
-        memcmp(&header.e_ident[EI_MAG0], ELFMAG, SELFMAG) != 0 ||
-        header.e_ident[EI_CLASS] != ELFCLASS64 ||
-        header.e_ident[EI_DATA] != ELFDATA2LSB ||
-        header.e_type != ET_EXEC ||
-        header.e_machine != EM_X86_64 ||
-        header.e_version != EV_CURRENT);
+            memcmp(&header.e_ident[EI_MAG0], ELFMAG, SELFMAG) != 0 ||
+            header.e_ident[EI_CLASS] != ELFCLASS64 ||
+            header.e_ident[EI_DATA] != ELFDATA2LSB ||
+            header.e_type != ET_EXEC ||
+            header.e_machine != EM_X86_64 ||
+            header.e_version != EV_CURRENT);
 }
 
 EFI_FILE *LoadFile(EFI_FILE *Directory, CHAR16 *Path, EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable)
 {
     EFI_FILE *LoadedFile;
-
     EFI_LOADED_IMAGE_PROTOCOL *LoadedImage;
-    SystemTable->BootServices->HandleProtocol(ImageHandle, &gEfiLoadedImageProtocolGuid, (void **)&LoadedImage);
+    SystemTable->BootServices->HandleProtocol(ImageHandle, &gEfiLoadedImageProtocolGuid, (void **) &LoadedImage);
 
     EFI_SIMPLE_FILE_SYSTEM_PROTOCOL *FileSystem;
     SystemTable->BootServices->HandleProtocol(LoadedImage->DeviceHandle, &gEfiSimpleFileSystemProtocolGuid,
-                                              (void **)&FileSystem);
+                                              (void **) &FileSystem);
 
-    if (Directory == NULL)
-    {
+    if (Directory == NULL) {
         FileSystem->OpenVolume(FileSystem, &Directory);
     }
 
     EFI_STATUS s = Directory->Open(Directory, &LoadedFile, Path, EFI_FILE_MODE_READ, EFI_FILE_READ_ONLY);
-    if (s != EFI_SUCCESS)
-    {
+    if (s != EFI_SUCCESS) {
         return NULL;
     }
     return LoadedFile;
@@ -153,8 +137,7 @@ EFI_FILE *LoadFile(EFI_FILE *Directory, CHAR16 *Path, EFI_HANDLE ImageHandle, EF
 int memcmp(const void *aptr, const void *bptr, size_t n)
 {
     const unsigned char *a = aptr, *b = bptr;
-    for (size_t i = 0; i < n; i++)
-    {
+    for (size_t i = 0; i < n; i++) {
         if (a[i] < b[i])
             return -1;
         else if (a[i] > b[i])
@@ -171,18 +154,15 @@ Framebuffer *InitGOP()
     EFI_GRAPHICS_OUTPUT_PROTOCOL *gop;
     EFI_STATUS status;
 
-    status = uefi_call_wrapper(BS->LocateProtocol, 3, &gopGuid, NULL, (void **)&gop);
-    if (EFI_ERROR(status))
-    {
+    status = uefi_call_wrapper(BS->LocateProtocol, 3, &gopGuid, NULL, (void **) &gop);
+    if (EFI_ERROR(status)) {
         Print(L"Could not locate GOP\n\r");
         return NULL;
-    }
-    else
-    {
+    } else {
         Print(L"Located GOP\n\r");
     }
 
-    framebuffer.BaseAddress = (void *)gop->Mode->FrameBufferBase;
+    framebuffer.BaseAddress = (void *) gop->Mode->FrameBufferBase;
     framebuffer.BufferSize = gop->Mode->FrameBufferSize;
     framebuffer.Width = gop->Mode->Info->HorizontalResolution;
     framebuffer.Height = gop->Mode->Info->VerticalResolution;
@@ -198,30 +178,28 @@ PSF1_FONT *LoadPSF1Font(EFI_FILE *Directory, CHAR16 *Path, EFI_HANDLE ImageHandl
         return NULL;
 
     PSF1_HEADER *fontHeader;
-    SystemTable->BootServices->AllocatePool(EfiLoaderData, sizeof(PSF1_HEADER), (void **)&fontHeader);
+    SystemTable->BootServices->AllocatePool(EfiLoaderData, sizeof(PSF1_HEADER), (void **) &fontHeader);
     UINTN size = sizeof(PSF1_HEADER);
     font->Read(font, &size, fontHeader);
 
-    if (fontHeader->magic[0] != PSF1_MAGIC0 || fontHeader->magic[1] != PSF1_MAGIC1)
-    {
+    if (fontHeader->magic[0] != PSF1_MAGIC0 || fontHeader->magic[1] != PSF1_MAGIC1) {
         return NULL;
     }
 
     UINTN glyphBufferSize = fontHeader->charsize * 256;
-    if (fontHeader->mode == 1)
-    {
+    if (fontHeader->mode == 1) {
         glyphBufferSize = fontHeader->charsize * 512;
     }
 
     void *glyphBuffer;
     {
         font->SetPosition(font, sizeof(PSF1_HEADER));
-        SystemTable->BootServices->AllocatePool(EfiLoaderData, glyphBufferSize, (void **)&glyphBuffer);
+        SystemTable->BootServices->AllocatePool(EfiLoaderData, glyphBufferSize, (void **) &glyphBuffer);
         font->Read(font, &glyphBufferSize, glyphBuffer);
     }
 
     PSF1_FONT *finishedFont;
-    SystemTable->BootServices->AllocatePool(EfiLoaderData, sizeof(PSF1_FONT), (void **)&finishedFont);
+    SystemTable->BootServices->AllocatePool(EfiLoaderData, sizeof(PSF1_FONT), (void **) &finishedFont);
     finishedFont->psf1_Header = fontHeader;
     finishedFont->glyphBuffer = glyphBuffer;
     return finishedFont;

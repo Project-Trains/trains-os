@@ -3,9 +3,9 @@
 uint64_t _KernelStart;
 uint64_t _KernelEnd;
 
-void _start(BootInfo *bootInfo) {
+void _start(BootInfo *bootInfo)
+{
     Renderer renderer = Renderer(bootInfo->framebuffer, bootInfo->psf1_Font);
-
     PageFrameAlloc allocator;
     allocator.ReadEFIMemoryMap(bootInfo->mMap, bootInfo->mMapSize, bootInfo->mMapDescSize);
 

@@ -1,4 +1,5 @@
 #pragma once
+
 #include "math.h"
 #include "Framebuffer.h"
 #include "fonts.h"

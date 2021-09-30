@@ -5,14 +5,14 @@ uint64_t reservedMemory;
 uint64_t usedMemory;
 bool Initialized = false;
 
-void PageFrameAlloc::ReadEFIMemoryMap(EFI_MEMORY_DESCRIPTOR *mMap, size_t mMapSize, size_t mMapDescSize) {
+void PageFrameAlloc::ReadEFIMemoryMap(EFI_MEMORY_DESCRIPTOR *mMap, size_t mMapSize, size_t mMapDescSize)
+{
     if (Initialized)
         return;
 
     Initialized = true;
 
     uint64_t mMapEntries = mMapSize / mMapDescSize;
-
     void *largestFreeMemSeg = NULL;
     size_t largestFreeMemSegSize = 0;
 
@@ -41,14 +41,16 @@ void PageFrameAlloc::ReadEFIMemoryMap(EFI_MEMORY_DESCRIPTOR *mMap, size_t mMapSi
     }
 }
 
-void PageFrameAlloc::InitBitmap(size_t bitmapSize, void *bufferAddress) {
+void PageFrameAlloc::InitBitmap(size_t bitmapSize, void *bufferAddress)
+{
     PageBitmap.Size = bitmapSize;
     PageBitmap.Buffer = (uint8_t *) bufferAddress;
     for (int i = 0; i < bitmapSize; i++)
         *(uint8_t * )(PageBitmap.Buffer + i) = 0;
 }
 
-void *PageFrameAlloc::RequestPage() {
+void *PageFrameAlloc::RequestPage()
+{
     for (uint64_t index = 0; index < PageBitmap.Size * 8; index++) {
         if (PageBitmap[index]) continue;
         LockPage((void *) (index * 4096));
@@ -58,7 +60,8 @@ void *PageFrameAlloc::RequestPage() {
     return NULL;
 }
 
-void PageFrameAlloc::FreePage(void *address) {
+void PageFrameAlloc::FreePage(void *address)
+{
     uint64_t index = (uint64_t) address / 4096;
     if (!PageBitmap[index]) return;
     PageBitmap.Set(index, false);
@@ -66,12 +69,14 @@ void PageFrameAlloc::FreePage(void *address) {
     usedMemory -= 4096;
 }
 
-void PageFrameAlloc::FreePages(void *address, uint64_t pageCount) {
+void PageFrameAlloc::FreePages(void *address, uint64_t pageCount)
+{
     for (int t = 0; t < pageCount; t++)
         FreePage((void *) ((uint64_t) address + (t * 4096)));
 }
 
-void PageFrameAlloc::LockPage(void *address) {
+void PageFrameAlloc::LockPage(void *address)
+{
     uint64_t index = (uint64_t) address / 4096;
     if (PageBitmap[index]) return;
     PageBitmap.Set(index, true);
@@ -79,12 +84,14 @@ void PageFrameAlloc::LockPage(void *address) {
     usedMemory += 4096;
 }
 
-void PageFrameAlloc::LockPages(void *address, uint64_t pageCount) {
+void PageFrameAlloc::LockPages(void *address, uint64_t pageCount)
+{
     for (int t = 0; t < pageCount; t++)
         LockPage((void *) ((uint64_t) address + (t * 4096)));
 }
 
-void PageFrameAlloc::UnreservePage(void *address) {
+void PageFrameAlloc::UnreservePage(void *address)
+{
     uint64_t index = (uint64_t) address / 4096;
     if (!PageBitmap[index]) return;
     PageBitmap.Set(index, false);
@@ -92,12 +99,14 @@ void PageFrameAlloc::UnreservePage(void *address) {
     reservedMemory -= 4096;
 }
 
-void PageFrameAlloc::UnreservePages(void *address, uint64_t pageCount) {
+void PageFrameAlloc::UnreservePages(void *address, uint64_t pageCount)
+{
     for (int t = 0; t < pageCount; t++)
         UnreservePage((void *) ((uint64_t) address + (t * 4096)));
 }
 
-void PageFrameAlloc::ReservePage(void *address) {
+void PageFrameAlloc::ReservePage(void *address)
+{
     uint64_t index = (uint64_t) address / 4096;
     if (PageBitmap[index]) return;
     PageBitmap.Set(index, true);
@@ -105,19 +114,23 @@ void PageFrameAlloc::ReservePage(void *address) {
     reservedMemory += 4096;
 }
 
-void PageFrameAlloc::ReservePages(void *address, uint64_t pageCount) {
+void PageFrameAlloc::ReservePages(void *address, uint64_t pageCount)
+{
     for (int t = 0; t < pageCount; t++)
         ReservePage((void *) ((uint64_t) address + (t * 4096)));
 }
 
-uint64_t PageFrameAlloc::GetFreeRAM() {
+uint64_t PageFrameAlloc::GetFreeRAM()
+{
     return freeMemory;
 }
 
-uint64_t PageFrameAlloc::GetUsedRAM() {
+uint64_t PageFrameAlloc::GetUsedRAM()
+{
     return usedMemory;
 }
 
-uint64_t PageFrameAlloc::GetReservedRAM() {
+uint64_t PageFrameAlloc::GetReservedRAM()
+{
     return reservedMemory;
 }

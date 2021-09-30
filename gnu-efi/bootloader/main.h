@@ -2,7 +2,6 @@
 #define MAIN_H_
 
 typedef unsigned long long size_t;
-
 typedef struct
 {
     void *BaseAddress;
@@ -21,13 +20,11 @@ typedef struct
     unsigned char mode;
     unsigned char charsize;
 } PSF1_HEADER;
-
 typedef struct
 {
     PSF1_HEADER *psf1_Header;
     void *glyphBuffer;
 } PSF1_FONT;
-
 typedef struct
 {
     Framebuffer *framebuffer;
@@ -36,7 +33,6 @@ typedef struct
     UINTN mMapSize;
     UINTN mMapDescSize;
 } BootInfo;
-
 Framebuffer *InitGOP();
 EFI_FILE *LoadFile(EFI_FILE *Directory, CHAR16 *Path, EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable);
 PSF1_FONT *LoadPSF1Font(EFI_FILE *Directory, CHAR16 *Path, EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable);
